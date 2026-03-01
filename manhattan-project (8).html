@@ -1,0 +1,1531 @@
+<!DOCTYPE html>
+<html lang="en" data-theme="dark">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>The Manhattan Project</title>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=IBM+Plex+Mono:wght@300;400;700&family=Playfair+Display:ital,wght@0,400;0,700;1,400&display=swap" rel="stylesheet">
+<style>
+  :root {
+    --bg: #0a0a08;
+    --bg2: #111110;
+    --surface: #1a1a17;
+    --border: #2a2a25;
+    --text: #e8e4d8;
+    --text2: #9a9485;
+    --accent: #d4a843;
+    --accent2: #c0392b;
+    --accent3: #e8e4d8;
+    --glow: rgba(212, 168, 67, 0.15);
+    --bombglow: rgba(212, 168, 67, 0.3);
+    --grain: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)' opacity='0.04'/%3E%3C/svg%3E");
+  }
+  [data-theme="light"] {
+    --bg: #f4f0e4;
+    --bg2: #ede8d8;
+    --surface: #e4dfc8;
+    --border: #c8c0a0;
+    --text: #1a1a15;
+    --text2: #5a5448;
+    --accent: #8b6914;
+    --accent2: #8b1a1a;
+    --accent3: #1a1a15;
+    --glow: rgba(139, 105, 20, 0.1);
+    --bombglow: rgba(139, 105, 20, 0.2);
+  }
+
+  *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+  html { scroll-behavior: smooth; }
+
+  body {
+    font-family: 'IBM Plex Mono', monospace;
+    background: var(--bg);
+    color: var(--text);
+    overflow-x: hidden;
+    cursor: crosshair;
+    transition: background 0.5s, color 0.5s;
+  }
+
+  /* GRAIN OVERLAY */
+  body::before {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background-image: var(--grain);
+    pointer-events: none;
+    z-index: 9999;
+    opacity: 0.5;
+  }
+
+  /* SCANLINES */
+  body::after {
+    content: '';
+    position: fixed;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg,
+      transparent,
+      transparent 2px,
+      rgba(0,0,0,0.04) 2px,
+      rgba(0,0,0,0.04) 4px
+    );
+    pointer-events: none;
+    z-index: 9998;
+  }
+
+  /* NAV */
+  nav {
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 1000;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1rem 2.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--bg);
+    backdrop-filter: blur(12px);
+    transition: all 0.5s;
+  }
+
+  .nav-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.4rem;
+    letter-spacing: 0.2em;
+    color: var(--accent);
+  }
+
+  .nav-links {
+    display: flex;
+    gap: 2rem;
+    list-style: none;
+  }
+
+  .nav-links a {
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    text-decoration: none;
+    color: var(--text2);
+    text-transform: uppercase;
+    transition: color 0.3s;
+  }
+
+  .nav-links a:hover { color: var(--accent); }
+  .nav-links a.active {
+    color: var(--accent);
+    border-bottom: 1px solid var(--accent);
+    padding-bottom: 2px;
+  }
+
+  .theme-toggle {
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--text2);
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.65rem;
+    letter-spacing: 0.1em;
+    padding: 0.4rem 0.8rem;
+    cursor: pointer;
+    text-transform: uppercase;
+    transition: all 0.3s;
+  }
+
+  .theme-toggle:hover {
+    border-color: var(--accent);
+    color: var(--accent);
+  }
+
+  /* HERO */
+  .hero {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    position: relative;
+    overflow: hidden;
+    padding: 8rem 2rem 4rem;
+  }
+
+  .hero-bg {
+    position: absolute;
+    inset: 0;
+    background: 
+      radial-gradient(ellipse 60% 50% at 50% 70%, var(--glow) 0%, transparent 70%),
+      radial-gradient(ellipse 30% 20% at 50% 85%, var(--bombglow) 0%, transparent 60%);
+  }
+
+  .hero-label {
+    font-size: 0.65rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 1.5rem;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.3s forwards;
+  }
+
+  .hero-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(4rem, 12vw, 10rem);
+    letter-spacing: 0.05em;
+    line-height: 0.9;
+    text-align: center;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.5s forwards;
+    position: relative;
+    z-index: 2;
+  }
+
+  .hero-title span {
+    color: var(--accent);
+    display: block;
+  }
+
+  .hero-sub {
+    font-size: 0.75rem;
+    color: var(--text2);
+    letter-spacing: 0.15em;
+    text-align: center;
+    margin-top: 2rem;
+    max-width: 500px;
+    line-height: 1.8;
+    opacity: 0;
+    animation: fadeUp 0.8s 0.7s forwards;
+  }
+
+  /* 3D BOMB */
+  .bomb-container {
+    position: relative;
+    width: 280px;
+    height: 380px;
+    margin: 3rem auto 0;
+    opacity: 0;
+    animation: fadeUp 1s 0.9s forwards;
+  }
+
+  .bomb-scene {
+    width: 100%;
+    height: 100%;
+    perspective: 800px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+  }
+
+  .bomb-wrap {
+    position: relative;
+    transform-style: preserve-3d;
+    animation: bombFloat 4s ease-in-out infinite;
+    transition: transform 0.1s;
+  }
+
+  .bomb-glow {
+    position: absolute;
+    bottom: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 160px;
+    height: 30px;
+    background: radial-gradient(ellipse, var(--bombglow) 0%, transparent 70%);
+    border-radius: 50%;
+    animation: glowPulse 4s ease-in-out infinite;
+    filter: blur(8px);
+  }
+
+  @keyframes glowPulse {
+    0%, 100% { opacity: 0.5; transform: translateX(-50%) scaleX(1); }
+    50% { opacity: 1; transform: translateX(-50%) scaleX(1.2); }
+  }
+
+  .bomb-svg {
+    filter: drop-shadow(0 20px 40px rgba(212, 168, 67, 0.25));
+    transition: filter 0.3s;
+  }
+
+  .bomb-wrap:hover .bomb-svg {
+    filter: drop-shadow(0 20px 60px rgba(212, 168, 67, 0.5));
+  }
+
+  @keyframes bombFloat {
+    0%, 100% { transform: translateY(0) rotateY(0deg); }
+    25% { transform: translateY(-12px) rotateY(8deg); }
+    75% { transform: translateY(-6px) rotateY(-8deg); }
+  }
+
+  .scroll-indicator {
+    position: absolute;
+    bottom: 2rem;
+    left: 50%;
+    transform: translateX(-50%);
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    opacity: 0;
+    animation: fadeIn 1s 2s forwards;
+  }
+
+  .scroll-indicator span {
+    font-size: 0.6rem;
+    letter-spacing: 0.2em;
+    color: var(--text2);
+    text-transform: uppercase;
+  }
+
+  .scroll-line {
+    width: 1px;
+    height: 50px;
+    background: linear-gradient(to bottom, var(--accent), transparent);
+    animation: scrollDrop 1.5s ease-in-out infinite;
+  }
+
+  @keyframes scrollDrop {
+    0% { transform: scaleY(0); transform-origin: top; }
+    50% { transform: scaleY(1); transform-origin: top; }
+    51% { transform: scaleY(1); transform-origin: bottom; }
+    100% { transform: scaleY(0); transform-origin: bottom; }
+  }
+
+  /* CLASSIFIED TICKER */
+  .ticker {
+    background: var(--accent);
+    color: var(--bg);
+    font-size: 0.65rem;
+    letter-spacing: 0.2em;
+    padding: 0.6rem 0;
+    overflow: hidden;
+    white-space: nowrap;
+  }
+
+  .ticker-inner {
+    display: inline-block;
+    animation: ticker 25s linear infinite;
+  }
+
+  @keyframes ticker {
+    from { transform: translateX(100vw); }
+    to { transform: translateX(-100%); }
+  }
+
+  /* SECTIONS */
+  section {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 6rem 2.5rem;
+  }
+
+  .section-tag {
+    font-size: 0.6rem;
+    letter-spacing: 0.3em;
+    color: var(--accent);
+    text-transform: uppercase;
+    margin-bottom: 0.8rem;
+    display: flex;
+    align-items: center;
+    gap: 0.8rem;
+  }
+
+  .section-tag::after {
+    content: '';
+    flex: 1;
+    height: 1px;
+    background: var(--border);
+    max-width: 60px;
+  }
+
+  .section-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: clamp(2.5rem, 6vw, 5rem);
+    line-height: 1;
+    margin-bottom: 0.5rem;
+  }
+
+  /* INTRO BLOCK */
+  .intro-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    margin-top: 3rem;
+    align-items: start;
+  }
+
+  .intro-text {
+    font-size: 0.9rem;
+    line-height: 2;
+    color: var(--text2);
+  }
+
+  .intro-text strong {
+    color: var(--text);
+  }
+
+  .intro-stats {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+  }
+
+  .stat-box {
+    background: var(--bg2);
+    padding: 1.5rem;
+    transition: background 0.3s;
+  }
+
+  .stat-box:hover { background: var(--surface); }
+
+  .stat-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 2.8rem;
+    color: var(--accent);
+    line-height: 1;
+    display: block;
+  }
+
+  .stat-label {
+    font-size: 0.6rem;
+    letter-spacing: 0.15em;
+    color: var(--text2);
+    text-transform: uppercase;
+    margin-top: 0.3rem;
+    display: block;
+  }
+
+  /* TIMELINE */
+  .timeline-full {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    padding: 6rem 0;
+  }
+
+  .timeline-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 0 2.5rem;
+  }
+
+  .timeline-entries {
+    margin-top: 3rem;
+    position: relative;
+  }
+
+  .timeline-entries::before {
+    content: '';
+    position: absolute;
+    left: 80px;
+    top: 0;
+    bottom: 0;
+    width: 1px;
+    background: linear-gradient(to bottom, transparent, var(--border) 10%, var(--border) 90%, transparent);
+  }
+
+  .t-entry {
+    display: flex;
+    gap: 2rem;
+    align-items: flex-start;
+    margin-bottom: 3rem;
+    opacity: 0;
+    transform: translateX(-20px);
+    transition: all 0.6s;
+    padding-left: 0;
+  }
+
+  .t-entry.visible {
+    opacity: 1;
+    transform: translateX(0);
+  }
+
+  .t-year {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.3rem;
+    color: var(--accent);
+    width: 60px;
+    flex-shrink: 0;
+    text-align: right;
+    position: relative;
+    padding-top: 2px;
+  }
+
+  .t-year::after {
+    content: '';
+    position: absolute;
+    right: -22px;
+    top: 10px;
+    width: 8px;
+    height: 8px;
+    background: var(--accent);
+    border-radius: 50%;
+    box-shadow: 0 0 0 3px var(--bg2), 0 0 0 4px var(--border);
+  }
+
+  .t-content {
+    padding-left: 1.5rem;
+    flex: 1;
+  }
+
+  .t-title {
+    font-size: 0.8rem;
+    letter-spacing: 0.1em;
+    font-weight: 700;
+    text-transform: uppercase;
+    margin-bottom: 0.4rem;
+  }
+
+  .t-desc {
+    font-size: 0.78rem;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  /* SUBTOPICS GRID */
+  .topics-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .topic-card {
+    background: var(--bg);
+    padding: 2rem;
+    position: relative;
+    overflow: hidden;
+    transition: background 0.4s;
+    cursor: default;
+  }
+
+  .topic-card::before {
+    content: '';
+    position: absolute;
+    bottom: 0;
+    left: 0;
+    right: 0;
+    height: 2px;
+    background: var(--accent);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform 0.4s;
+  }
+
+  .topic-card:hover { background: var(--surface); }
+  .topic-card:hover::before { transform: scaleX(1); }
+
+  .topic-num {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 4rem;
+    color: var(--border);
+    line-height: 1;
+    position: absolute;
+    top: 0.5rem;
+    right: 1rem;
+    transition: color 0.4s;
+  }
+
+  .topic-card:hover .topic-num { color: var(--surface); }
+
+  .topic-icon {
+    font-size: 1.8rem;
+    margin-bottom: 1rem;
+  }
+
+  .topic-name {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.8rem;
+  }
+
+  .topic-text {
+    font-size: 0.72rem;
+    color: var(--text2);
+    line-height: 1.9;
+  }
+
+  .topic-sig {
+    margin-top: 1rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--border);
+    font-size: 0.65rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  /* BOMB SECTION */
+  .bomb-section {
+    background: var(--bg2);
+    border-top: 1px solid var(--border);
+    border-bottom: 1px solid var(--border);
+    overflow: hidden;
+  }
+
+  .bomb-section-inner {
+    max-width: 1100px;
+    margin: 0 auto;
+    padding: 4rem 2.5rem;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4rem;
+    align-items: center;
+  }
+
+  .bomb-section-inner[style*="row-reverse"] {
+    direction: rtl;
+  }
+
+  .bomb-section-inner[style*="row-reverse"] > * {
+    direction: ltr;
+  }
+
+  .bomb-3d-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    position: relative;
+  }
+
+  .bomb-3d-wrap {
+    position: relative;
+    animation: bomb3DFloat 5s ease-in-out infinite;
+    transform-style: preserve-3d;
+  }
+
+  @keyframes bomb3DFloat {
+    0%, 100% { transform: translateY(0) rotate(-2deg); }
+    33% { transform: translateY(-20px) rotate(2deg); }
+    66% { transform: translateY(-10px) rotate(-1deg); }
+  }
+
+  .bomb-3d-glow {
+    position: absolute;
+    bottom: -50px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: 200px;
+    height: 40px;
+    background: radial-gradient(ellipse, rgba(212,168,67,0.4), transparent 70%);
+    filter: blur(15px);
+    border-radius: 50%;
+    animation: glowPulse 5s ease-in-out infinite;
+  }
+
+  .bomb-ring {
+    position: absolute;
+    border-radius: 50%;
+    border: 1px solid var(--accent);
+    opacity: 0;
+    animation: ringExpand 3s ease-out infinite;
+  }
+
+  .bomb-ring:nth-child(1) { width: 200px; height: 200px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 0s; }
+  .bomb-ring:nth-child(2) { width: 280px; height: 280px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 1s; }
+  .bomb-ring:nth-child(3) { width: 360px; height: 360px; top: 50%; left: 50%; transform: translate(-50%, -50%); animation-delay: 2s; }
+
+  @keyframes ringExpand {
+    0% { opacity: 0.6; transform: translate(-50%, -50%) scale(0.5); }
+    100% { opacity: 0; transform: translate(-50%, -50%) scale(1.5); }
+  }
+
+  .bomb-info h3 {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 3rem;
+    margin-bottom: 1rem;
+  }
+
+  .bomb-info h3 span { color: var(--accent); }
+
+  .bomb-spec {
+    display: flex;
+    flex-direction: column;
+    gap: 0.8rem;
+    margin-top: 1.5rem;
+  }
+
+  .spec-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.8rem 1rem;
+    background: var(--bg);
+    border-left: 2px solid var(--border);
+    font-size: 0.72rem;
+    transition: border-color 0.3s;
+  }
+
+  .spec-row:hover { border-left-color: var(--accent); }
+  .spec-key { color: var(--text2); text-transform: uppercase; letter-spacing: 0.1em; }
+  .spec-val { color: var(--accent); font-weight: 700; }
+
+  /* LEGACY SECTION */
+  .legacy-text {
+    max-width: 700px;
+    font-family: 'IBM Plex Mono', monospace;
+    font-size: 0.85rem;
+    line-height: 2;
+    color: var(--text2);
+    margin-top: 2rem;
+  }
+
+  .legacy-text strong {
+    color: var(--text);
+    font-style: normal;
+  }
+
+  .quote-block {
+    margin: 3rem 0;
+    padding: 2rem 2.5rem;
+    border-left: 3px solid var(--accent);
+    background: var(--surface);
+    position: relative;
+  }
+
+  .quote-block::before {
+    content: '"';
+    font-family: 'Playfair Display', serif;
+    font-size: 8rem;
+    color: var(--border);
+    position: absolute;
+    top: -2rem;
+    left: 1rem;
+    line-height: 1;
+  }
+
+  .quote-block p {
+    font-family: 'Playfair Display', serif;
+    font-style: italic;
+    font-size: 1.1rem;
+    line-height: 1.8;
+    color: var(--text);
+    position: relative;
+    z-index: 1;
+  }
+
+  .quote-block cite {
+    display: block;
+    margin-top: 1rem;
+    font-size: 0.7rem;
+    letter-spacing: 0.15em;
+    color: var(--accent);
+    text-transform: uppercase;
+    font-style: normal;
+  }
+
+  .impact-row {
+    display: grid;
+    grid-template-columns: repeat(4, 1fr);
+    gap: 1px;
+    background: var(--border);
+    border: 1px solid var(--border);
+    margin-top: 3rem;
+  }
+
+  .impact-box {
+    background: var(--bg);
+    padding: 2rem 1.5rem;
+    text-align: center;
+    transition: background 0.3s;
+  }
+
+  .impact-box:hover { background: var(--surface); }
+
+  .impact-icon { font-size: 2rem; margin-bottom: 0.8rem; color: var(--text); opacity: 0.85; }
+  .impact-icon svg { display: block; margin: 0 auto; }
+
+  .impact-title {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+
+  .impact-desc {
+    font-size: 0.68rem;
+    color: var(--text2);
+    line-height: 1.8;
+  }
+
+  /* FOOTER */
+  footer {
+    border-top: 1px solid var(--border);
+    padding: 3rem 2.5rem;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    max-width: 1100px;
+    margin: 0 auto;
+  }
+
+  .footer-logo {
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.5rem;
+    color: var(--accent);
+    letter-spacing: 0.1em;
+  }
+
+  .footer-note {
+    font-size: 0.6rem;
+    color: var(--text2);
+    letter-spacing: 0.08em;
+    text-align: right;
+    line-height: 2.1;
+    max-width: 600px;
+  }
+
+  /* DECLASSIFIED STAMP */
+  .stamp {
+    display: inline-block;
+    border: 3px solid var(--accent2);
+    color: var(--accent2);
+    font-family: 'Bebas Neue', sans-serif;
+    font-size: 1.2rem;
+    letter-spacing: 0.3em;
+    padding: 0.3rem 1.2rem;
+    transform: rotate(-8deg);
+    opacity: 0.8;
+    margin-top: 1.5rem;
+  }
+
+  /* ANIMATIONS */
+  @keyframes fadeUp {
+    from { opacity: 0; transform: translateY(20px); }
+    to { opacity: 1; transform: translateY(0); }
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; }
+    to { opacity: 1; }
+  }
+
+  .reveal {
+    opacity: 0;
+    transform: translateY(30px);
+    transition: all 0.7s;
+  }
+
+  .reveal.visible {
+    opacity: 1;
+    transform: translateY(0);
+  }
+
+  /* HORIZONTAL RULE STYLED */
+  .hr-styled {
+    border: none;
+    border-top: 1px solid var(--border);
+    margin: 0;
+  }
+
+  /* REDACTED TEXT EFFECT */
+  .redacted {
+    background: var(--text2);
+    color: transparent;
+    user-select: none;
+    transition: all 0.3s;
+    cursor: text;
+  }
+  .redacted:hover {
+    background: transparent;
+    color: var(--accent);
+  }
+
+  /* RESPONSIVE */
+  @media (max-width: 768px) {
+    .intro-grid, .bomb-section-inner { grid-template-columns: 1fr; }
+    .topics-grid { grid-template-columns: 1fr; }
+    .impact-row { grid-template-columns: 1fr 1fr; }
+    .timeline-entries::before { left: 50px; }
+    .t-year { width: 40px; font-size: 1rem; }
+    nav { padding: 1rem; }
+    .nav-links { display: none; }
+  }
+</style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="nav-logo">MED:1942</div>
+  <ul class="nav-links">
+    <li><a href="#overview">Overview</a></li>
+    <li><a href="#timeline">Timeline</a></li>
+    <li><a href="#subtopics">Subtopics</a></li>
+    <li><a href="#weapon">The Bomb</a></li>
+    <li><a href="#legacy">Legacy</a></li>
+  </ul>
+  <button class="theme-toggle" onclick="toggleTheme()">[ ◑ Mode ]</button>
+</nav>
+
+<!-- HERO -->
+<div class="hero" id="overview">
+  <div class="hero-bg"></div>
+  <div class="hero-label">U.S. WAR DEPARTMENT // CLASSIFIED PROGRAM // 1942–1945</div>
+  <h1 class="hero-title">
+    The<br>
+    <span>Manhattan</span>
+    Project
+  </h1>
+  <p class="hero-sub">The secret Allied program that built the world's first atomic weapons — and changed human history forever.</p>
+
+  <!-- BOMB SVG 3D -->
+  <div class="bomb-container">
+    <div class="bomb-scene">
+      <div class="bomb-wrap" id="bombWrap">
+        <div class="bomb-glow"></div>
+        <svg class="bomb-svg" width="220" height="320" viewBox="0 0 220 320" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <defs>
+            <radialGradient id="bodyGrad" cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#5a5550"/>
+              <stop offset="40%" stop-color="#3a3830"/>
+              <stop offset="100%" stop-color="#1a1815"/>
+            </radialGradient>
+            <radialGradient id="specular" cx="30%" cy="25%" r="40%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.15)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+            <filter id="bombShadow">
+              <feDropShadow dx="0" dy="8" stdDeviation="12" flood-color="rgba(0,0,0,0.6)"/>
+            </filter>
+          </defs>
+
+          <!-- TAIL FINS -->
+          <g transform="translate(110, 255)" filter="url(#bombShadow)">
+            <polygon points="-50,0 -50,55 -20,45" fill="#2a2820" stroke="#3a3830" stroke-width="1"/>
+            <polygon points="50,0 50,55 20,45" fill="#2a2820" stroke="#3a3830" stroke-width="1"/>
+            <polygon points="-10,0 -10,60 10,60 10,0" fill="#323028" stroke="#3a3830" stroke-width="1"/>
+            <polygon points="-30,0 -30,52 -5,45" fill="#252320" stroke="#3a3830" stroke-width="0.5"/>
+            <polygon points="30,0 30,52 5,45" fill="#252320" stroke="#3a3830" stroke-width="0.5"/>
+          </g>
+
+          <!-- TAIL CONNECTOR -->
+          <rect x="88" y="230" width="44" height="30" rx="3" fill="#2e2c28" stroke="#3a3830" stroke-width="1"/>
+          <!-- CONNECTOR BOLTS -->
+          <circle cx="95" cy="238" r="3" fill="#222018"/>
+          <circle cx="125" cy="238" r="3" fill="#222018"/>
+          <circle cx="95" cy="252" r="3" fill="#222018"/>
+          <circle cx="125" cy="252" r="3" fill="#222018"/>
+
+          <!-- MAIN BODY (FAT MAN ELLIPSOID) -->
+          <ellipse cx="110" cy="130" rx="88" ry="115" fill="url(#bodyGrad)" filter="url(#bombShadow)"/>
+          <!-- SPECULAR HIGHLIGHT -->
+          <ellipse cx="110" cy="130" rx="88" ry="115" fill="url(#specular)"/>
+
+          <!-- PANEL LINES -->
+          <ellipse cx="110" cy="130" rx="88" ry="115" fill="none" stroke="#282620" stroke-width="1.5" opacity="0.6"/>
+          <!-- Horizontal bands -->
+          <path d="M 25,100 Q 110,90 195,100" stroke="#282620" stroke-width="1" fill="none" opacity="0.8"/>
+          <path d="M 22,130 Q 110,120 198,130" stroke="#282620" stroke-width="1" fill="none" opacity="0.8"/>
+          <path d="M 25,160 Q 110,152 195,160" stroke="#282620" stroke-width="1" fill="none" opacity="0.8"/>
+
+          <!-- BOLTS/FASTENERS -->
+          <circle cx="65" cy="100" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="155" cy="100" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="60" cy="130" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="160" cy="130" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="65" cy="160" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="155" cy="160" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="110" cy="80" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+          <circle cx="110" cy="180" r="4" fill="#1e1c18" stroke="#383530" stroke-width="1"/>
+
+          <!-- TOP NOSE CONE -->
+          <ellipse cx="110" cy="18" rx="35" ry="22" fill="#302e28" stroke="#3a3830" stroke-width="1"/>
+          <path d="M 75,18 Q 110,2 145,18" fill="#282620" stroke="#3a3830" stroke-width="0.5"/>
+          <!-- NOSE BOLT -->
+          <circle cx="110" cy="18" r="5" fill="#1e1c18" stroke="#484540" stroke-width="1.5"/>
+
+          <!-- SENSOR PORTS -->
+          <circle cx="80" cy="70" r="6" fill="#1a1815" stroke="#484540" stroke-width="1.5"/>
+          <circle cx="80" cy="70" r="3" fill="#252320"/>
+          <circle cx="140" cy="70" r="6" fill="#1a1815" stroke="#484540" stroke-width="1.5"/>
+          <circle cx="140" cy="70" r="3" fill="#252320"/>
+
+          <!-- CENTER PLATE -->
+          <rect x="85" y="118" width="50" height="24" rx="2" fill="#1e1c18" stroke="#484540" stroke-width="1"/>
+          <rect x="88" y="122" width="44" height="16" rx="1" fill="#151310" stroke="#2a2820" stroke-width="0.5"/>
+          <!-- PLATE TEXT -->
+          <text x="110" y="133" font-family="monospace" font-size="5" fill="#484540" text-anchor="middle">MK III / PU</text>
+
+          <!-- OVERALL SHEEN -->
+          <ellipse cx="80" cy="90" rx="30" ry="50" fill="rgba(255,255,255,0.04)" transform="rotate(-10,80,90)"/>
+        </svg>
+      </div>
+    </div>
+  </div>
+
+  <div class="scroll-indicator">
+    <span>Scroll</span>
+    <div class="scroll-line"></div>
+  </div>
+</div>
+
+<!-- TICKER -->
+<div class="ticker">
+  <span class="ticker-inner">
+    ★ CLASSIFIED PROGRAM ★ MANHATTAN ENGINEER DISTRICT ★ 1942–1945 ★ 130,000 JOBS ★ $2 BILLION ★ 3 TEST/COMBAT DEVICES ★ OPERATION TRINITY ★ LOS ALAMOS ★ OAK RIDGE ★ HANFORD SITE ★ J. ROBERT OPPENHEIMER ★ GEN. LESLIE GROVES ★ &nbsp;&nbsp;&nbsp;
+  </span>
+</div>
+
+<!-- OVERVIEW SECTION -->
+<section id="overview">
+  <div class="reveal">
+    <div class="section-tag">01 — Overview</div>
+    <h2 class="section-title">Background &<br>Origins</h2>
+  </div>
+
+  <div class="intro-grid reveal">
+    <div class="intro-text">
+      <p>The Manhattan Project was a <strong>secret U.S.-led program</strong> during World War II that developed the first nuclear weapons. Beginning in <strong>1942</strong>, it brought together scientists, engineers, and military leaders in a massive, top-secret effort to build a bomb powerful enough to end the war.</p>
+      <br>
+      <p>Fear drove everything. In <strong>1939</strong>, physicists <strong>Albert Einstein</strong> and <strong>Leo Szilard</strong> warned President Roosevelt that Nazi Germany might be developing atomic weapons. After Pearl Harbor, the U.S. accelerated research into what became the most consequential scientific program in history.</p>
+      <br>
+      <p>The formal military structure — the <strong>Manhattan Engineer District</strong> — was created in 1942. Its name would become synonymous with the entire project.</p>
+      <div class="stamp">DECLASSIFIED</div>
+    </div>
+
+    <div class="intro-stats">
+      <div class="stat-box">
+        <span class="stat-num">130K</span>
+        <span class="stat-label">Jobs at peak</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">$2B</span>
+        <span class="stat-label">Cost (1945 USD)</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">3</span>
+        <span class="stat-label">Devices built</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">4</span>
+        <span class="stat-label">Years to completion</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">30+</span>
+        <span class="stat-label">Secret sites</span>
+      </div>
+      <div class="stat-box">
+        <span class="stat-num">1945</span>
+        <span class="stat-label">Year of first use</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<hr class="hr-styled">
+
+<!-- TIMELINE -->
+<div class="timeline-full" id="timeline">
+  <div class="timeline-inner">
+    <div class="reveal">
+      <div class="section-tag">02 — Chronology</div>
+      <h2 class="section-title">Key Timeline</h2>
+    </div>
+
+    <div class="timeline-entries">
+      <div class="t-entry">
+        <div class="t-year">1938</div>
+        <div class="t-content">
+          <div class="t-title">Nuclear Fission Discovered</div>
+          <div class="t-desc">German scientists Otto Hahn and Fritz Strassmann discover nuclear fission, with theoretical explanation by Lise Meitner and Otto Frisch. The atomic age begins in a Berlin lab.</div>
+        </div>
+      </div>
+      <div class="t-entry">
+        <div class="t-year">1939</div>
+        <div class="t-content">
+          <div class="t-title">The Einstein-Szilard Letter</div>
+          <div class="t-desc">Albert Einstein and Leo Szilard write to President Roosevelt warning that Germany may be developing atomic weapons. Roosevelt authorizes uranium research in response.</div>
+        </div>
+      </div>
+      <div class="t-entry">
+        <div class="t-year">1942</div>
+        <div class="t-content">
+          <div class="t-title">Manhattan Project Officially Begins</div>
+          <div class="t-desc">The Manhattan Engineer District is formally established. General Leslie Groves takes command. The first controlled nuclear chain reaction is achieved under Stagg Field in Chicago by Enrico Fermi (Dec. 2).</div>
+        </div>
+      </div>
+      <div class="t-entry">
+        <div class="t-year">1943</div>
+        <div class="t-content">
+          <div class="t-title">Los Alamos Opens</div>
+          <div class="t-desc">J. Robert Oppenheimer establishes the secret weapons laboratory at Los Alamos, New Mexico. Oak Ridge and Hanford sites become fully operational for material production.</div>
+        </div>
+      </div>
+      <div class="t-entry">
+        <div class="t-year">Jul 1945</div>
+        <div class="t-content">
+          <div class="t-title">Trinity Test — The First Bomb</div>
+          <div class="t-desc">July 16, 1945: The first atomic device ("The Gadget") is detonated in New Mexico's Jornada del Muerto desert. The blast equals ~21 kilotons of TNT. Oppenheimer recalls: "Now I am become Death, the destroyer of worlds."</div>
+        </div>
+      </div>
+      <div class="t-entry">
+        <div class="t-year">Aug 1945</div>
+        <div class="t-content">
+          <div class="t-title">Hiroshima & Nagasaki</div>
+          <div class="t-desc">Aug. 6 — "Little Boy" dropped on Hiroshima (~70,000 immediate deaths). Aug. 9 — "Fat Man" dropped on Nagasaki (~40,000 immediate deaths). Japan surrenders Aug. 15. WWII ends Sep. 2.</div>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- SUBTOPICS -->
+<section id="subtopics">
+  <div class="reveal">
+    <div class="section-tag">03 — Six Subtopics</div>
+    <h2 class="section-title">The Full<br>Picture</h2>
+  </div>
+
+  <div class="topics-grid">
+    <div class="topic-card reveal">
+      <div class="topic-num">01</div>
+      <div class="topic-icon">⚠️</div>
+      <div class="topic-name">Why It Began</div>
+      <div class="topic-text">Fear that Nazi Germany would develop atomic weapons first drove the U.S. to act. In 1939, Einstein and Szilard warned President Roosevelt in a letter. After Pearl Harbor in 1941, the U.S. accelerated atomic research into a full military program, officially launched in 1942.</div>
+      <div class="topic-sig">↳ Fear of Germany's science changed warfare forever.</div>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-num">02</div>
+      <div class="topic-icon">🎖️</div>
+      <div class="topic-name">Leadership</div>
+      <div class="topic-text">General Leslie Groves led military operations. Physicist J. Robert Oppenheimer directed the science at Los Alamos. Together they managed over 130,000 workers — most of whom never knew they were building an atomic bomb.</div>
+      <div class="topic-sig">↳ Science and military merged on an unprecedented scale.</div>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-num">03</div>
+      <div class="topic-icon">📍</div>
+      <div class="topic-name">Secret Cities</div>
+      <div class="topic-text">Los Alamos designed the bomb. Oak Ridge enriched uranium. Hanford produced plutonium. Chicago hosted the first chain reaction. Entire communities were built from scratch — addresses were classified, mail was censored.</div>
+      <div class="topic-sig">↳ Entire hidden towns existed for one purpose.</div>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-num">04</div>
+      <div class="topic-icon">⚛️</div>
+      <div class="topic-name">The Science</div>
+      <div class="topic-text">Scientists exploited nuclear fission — splitting uranium-235 or plutonium-239 releases massive energy. Two bomb designs emerged: "Little Boy" (gun-type) and "Fat Man" (implosion). The Trinity Test on July 16, 1945 proved it worked.</div>
+      <div class="topic-sig">↳ Physics became the most powerful weapon in history.</div>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-num">05</div>
+      <div class="topic-icon">💥</div>
+      <div class="topic-name">Hiroshima & Nagasaki</div>
+      <div class="topic-text">Aug. 6, 1945: Little Boy devastated Hiroshima. Aug. 9: Fat Man destroyed Nagasaki. ~70,000–80,000 died in Hiroshima instantly; ~40,000 in Nagasaki. Total deaths from both cities exceeded 200,000. Japan surrendered Aug. 15, ending WWII.</div>
+      <div class="topic-sig">↳ Two bombs ended a world war — and began an ethical debate.</div>
+    </div>
+    <div class="topic-card reveal">
+      <div class="topic-num">06</div>
+      <div class="topic-icon">🌍</div>
+      <div class="topic-name">Global Impact</div>
+      <div class="topic-text">The Atomic Age began. The U.S. and Soviet Union launched a nuclear arms race that defined the Cold War. The Atomic Energy Commission replaced military control in 1947. Nuclear deterrence became the foundation of modern global strategy.</div>
+      <div class="topic-sig">↳ The Manhattan Project permanently altered geopolitics.</div>
+    </div>
+  </div>
+</section>
+
+<!-- BOMB SECTION -->
+<div class="bomb-section" id="weapon">
+
+  <!-- SECTION HEADER -->
+  <div style="max-width:1100px; margin:0 auto; padding:4rem 2.5rem 0;">
+    <div class="reveal">
+      <div class="section-tag">04 — The Weapons</div>
+      <h2 class="section-title">Two Bombs.<br><span style="color:var(--accent)">One War Ended.</span></h2>
+      <p style="font-size:0.78rem; color:var(--text2); line-height:1.9; max-width:600px; margin-top:1rem;">The Manhattan Project produced two distinct atomic weapons, each using a different design and a different fissile material. Both were deployed in August 1945 — three days apart.</p>
+    </div>
+  </div>
+
+  <!-- DIVIDER LINE -->
+  <div style="max-width:1100px; margin:2.5rem auto 0; padding:0 2.5rem;">
+    <div style="height:1px; background:var(--border);"></div>
+  </div>
+
+  <!-- BOMB 1: LITTLE BOY -->
+  <div class="bomb-section-inner" style="padding-bottom:3rem;">
+    <div class="bomb-3d-container">
+      <div class="bomb-ring"></div>
+      <div class="bomb-ring"></div>
+      <div class="bomb-3d-wrap" id="bomb-lb">
+        <div class="bomb-3d-glow"></div>
+        <!-- LITTLE BOY SVG — long cylindrical gun-type bomb -->
+        <svg width="200" height="420" viewBox="0 0 120 420" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 30px rgba(212,168,67,0.3)); animation: bomb3DFloat 5s ease-in-out infinite;">
+          <defs>
+            <radialGradient id="lbGrad" cx="30%" cy="30%" r="70%">
+              <stop offset="0%" stop-color="#5a5550"/>
+              <stop offset="50%" stop-color="#323028"/>
+              <stop offset="100%" stop-color="#1a1815"/>
+            </radialGradient>
+            <radialGradient id="lbSpec" cx="25%" cy="20%" r="40%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.18)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+          </defs>
+          <!-- TAIL FINS (4 fins, cross-shaped) -->
+          <g transform="translate(60,355)">
+            <polygon points="-32,0 -42,55 -12,45" fill="#252320" stroke="#d4a843" stroke-width="0.5" opacity="0.6"/>
+            <polygon points="32,0 42,55 12,45" fill="#252320" stroke="#d4a843" stroke-width="0.5" opacity="0.6"/>
+            <rect x="-6" y="0" width="12" height="58" fill="#2e2c28" stroke="#d4a843" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="-6,0 -6,52 -28,42" fill="#1e1c18" stroke="#d4a843" stroke-width="0.3" opacity="0.4"/>
+            <polygon points="6,0 6,52 28,42" fill="#1e1c18" stroke="#d4a843" stroke-width="0.3" opacity="0.4"/>
+          </g>
+          <!-- TAIL CYLINDER -->
+          <rect x="44" y="330" width="32" height="28" rx="3" fill="#2a2820" stroke="#d4a843" stroke-width="0.5" opacity="0.6"/>
+          <!-- MAIN BODY — long cylinder -->
+          <rect x="28" y="55" width="64" height="278" rx="6" fill="url(#lbGrad)"/>
+          <rect x="28" y="55" width="64" height="278" rx="6" fill="url(#lbSpec)"/>
+          <!-- BAND RINGS -->
+          <rect x="28" y="120" width="64" height="6" rx="1" fill="#1e1c18" stroke="#d4a843" stroke-width="0.6" opacity="0.5"/>
+          <rect x="28" y="180" width="64" height="6" rx="1" fill="#1e1c18" stroke="#d4a843" stroke-width="0.6" opacity="0.5"/>
+          <rect x="28" y="240" width="64" height="6" rx="1" fill="#1e1c18" stroke="#d4a843" stroke-width="0.6" opacity="0.5"/>
+          <rect x="28" y="300" width="64" height="5" rx="1" fill="#1e1c18" stroke="#d4a843" stroke-width="0.6" opacity="0.5"/>
+          <!-- BOLTS on rings -->
+          <circle cx="32" cy="123" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="88" cy="123" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="32" cy="183" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="88" cy="183" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="32" cy="243" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <circle cx="88" cy="243" r="2.5" fill="#1a1815" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <!-- CENTER PLATE -->
+          <rect x="38" y="195" width="44" height="20" rx="2" fill="#151310" stroke="#d4a843" stroke-width="0.8" opacity="0.8"/>
+          <text x="60" y="208" font-family="monospace" font-size="4.5" fill="#d4a843" text-anchor="middle" opacity="0.9">MK I — LITTLE BOY</text>
+          <!-- NOSE CONE (pointed) -->
+          <ellipse cx="60" cy="58" rx="32" ry="10" fill="#302e28" stroke="#d4a843" stroke-width="0.8" opacity="0.7"/>
+          <path d="M 28,58 Q 60,8 92,58" fill="#1e1c18" stroke="#d4a843" stroke-width="0.8" opacity="0.6"/>
+          <circle cx="60" cy="22" r="5" fill="#1a1815" stroke="#d4a843" stroke-width="1.2" opacity="0.8"/>
+          <!-- SENSOR PORTS -->
+          <circle cx="38" cy="90" r="5" fill="#1a1815" stroke="#d4a843" stroke-width="1.2" opacity="0.8"/>
+          <circle cx="38" cy="90" r="2" fill="#d4a843" opacity="0.35"/>
+          <circle cx="82" cy="90" r="5" fill="#1a1815" stroke="#d4a843" stroke-width="1.2" opacity="0.8"/>
+          <circle cx="82" cy="90" r="2" fill="#d4a843" opacity="0.35"/>
+          <!-- SHEEN -->
+          <rect x="30" y="60" width="20" height="260" rx="4" fill="rgba(255,255,255,0.04)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="bomb-info reveal">
+      <div class="section-tag">Bomb 01 of 02</div>
+      <h3>"Little Boy"<br><span>Mark I — Uranium Gun-Type</span></h3>
+      <p style="font-size:0.78rem; color:var(--text2); line-height:1.9; margin-top:0.8rem;">"Little Boy" was the first atomic bomb ever used in combat. It used a gun-type design — one piece of enriched uranium was fired down a barrel into another, creating a supercritical mass and triggering a nuclear chain reaction. It was dropped on <strong style="color:var(--text)">Hiroshima, Japan on August 6, 1945</strong>, from a B-29 bomber named the <em>Enola Gay</em>. The explosion instantly killed an estimated 70,000–80,000 people, with total deaths reaching approximately 140,000 by the end of 1945.</p>
+      <div class="bomb-spec">
+        <div class="spec-row"><span class="spec-key">Designation</span><span class="spec-val">Mark I</span></div>
+        <div class="spec-row"><span class="spec-key">Core Material</span><span class="spec-val">Uranium-235</span></div>
+        <div class="spec-row"><span class="spec-key">Mechanism</span><span class="spec-val">Gun-Type</span></div>
+        <div class="spec-row"><span class="spec-key">Yield</span><span class="spec-val">~15 Kilotons TNT</span></div>
+        <div class="spec-row"><span class="spec-key">Weight</span><span class="spec-val">9,700 lbs</span></div>
+        <div class="spec-row"><span class="spec-key">Carrier Aircraft</span><span class="spec-val">B-29 Enola Gay</span></div>
+        <div class="spec-row"><span class="spec-key">Deployed</span><span class="spec-val">Hiroshima, Aug 6 1945</span></div>
+        <div class="spec-row"><span class="spec-key">Immediate Deaths</span><span class="spec-val">~70,000–80,000</span></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- DIVIDER -->
+  <div style="max-width:1100px; margin:0 auto; padding:0 2.5rem;">
+    <div style="height:1px; background: linear-gradient(to right, transparent, var(--accent), transparent);"></div>
+    <div style="text-align:center; margin-top:-0.6rem;">
+      <span style="background:var(--bg2); padding:0 1rem; font-size:0.6rem; letter-spacing:0.3em; color:var(--accent); text-transform:uppercase;">Three Days Later</span>
+    </div>
+  </div>
+
+  <!-- BOMB 2: FAT MAN -->
+  <div class="bomb-section-inner" style="padding-top:3rem; flex-direction: row-reverse;">
+    <div class="bomb-3d-container">
+      <div class="bomb-ring"></div>
+      <div class="bomb-ring"></div>
+      <div class="bomb-ring"></div>
+      <div class="bomb-3d-wrap" id="bomb3d">
+        <div class="bomb-3d-glow"></div>
+        <svg width="260" height="370" viewBox="0 0 220 320" fill="none" xmlns="http://www.w3.org/2000/svg" style="filter: drop-shadow(0 0 30px rgba(212,168,67,0.3)); animation: bomb3DFloat 5s ease-in-out infinite 1s;">
+          <defs>
+            <radialGradient id="bodyGrad2" cx="35%" cy="35%" r="70%">
+              <stop offset="0%" stop-color="#6a6558"/>
+              <stop offset="40%" stop-color="#3a3830"/>
+              <stop offset="100%" stop-color="#1a1815"/>
+            </radialGradient>
+            <radialGradient id="specular2" cx="30%" cy="25%" r="40%">
+              <stop offset="0%" stop-color="rgba(255,255,255,0.2)"/>
+              <stop offset="100%" stop-color="rgba(255,255,255,0)"/>
+            </radialGradient>
+          </defs>
+          <g transform="translate(110, 255)">
+            <polygon points="-50,0 -50,55 -20,45" fill="#2a2820" stroke="#d4a843" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="50,0 50,55 20,45" fill="#2a2820" stroke="#d4a843" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="-10,0 -10,60 10,60 10,0" fill="#323028" stroke="#d4a843" stroke-width="0.5" opacity="0.5"/>
+            <polygon points="-30,0 -30,52 -5,45" fill="#252320" stroke="#d4a843" stroke-width="0.3" opacity="0.4"/>
+            <polygon points="30,0 30,52 5,45" fill="#252320" stroke="#d4a843" stroke-width="0.3" opacity="0.4"/>
+          </g>
+          <rect x="88" y="230" width="44" height="30" rx="3" fill="#2e2c28" stroke="#d4a843" stroke-width="0.5" opacity="0.6"/>
+          <ellipse cx="110" cy="130" rx="88" ry="115" fill="url(#bodyGrad2)"/>
+          <ellipse cx="110" cy="130" rx="88" ry="115" fill="url(#specular2)"/>
+          <path d="M 25,100 Q 110,90 195,100" stroke="#d4a843" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 22,130 Q 110,120 198,130" stroke="#d4a843" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <path d="M 25,160 Q 110,152 195,160" stroke="#d4a843" stroke-width="0.8" fill="none" opacity="0.4"/>
+          <circle cx="65" cy="100" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <circle cx="155" cy="100" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <circle cx="60" cy="130" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <circle cx="160" cy="130" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <circle cx="65" cy="160" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <circle cx="155" cy="160" r="4" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.7"/>
+          <ellipse cx="110" cy="18" rx="35" ry="22" fill="#302e28" stroke="#d4a843" stroke-width="0.8" opacity="0.6"/>
+          <circle cx="80" cy="70" r="6" fill="#1a1815" stroke="#d4a843" stroke-width="1.5" opacity="0.8"/>
+          <circle cx="80" cy="70" r="3" fill="#d4a843" opacity="0.4"/>
+          <circle cx="140" cy="70" r="6" fill="#1a1815" stroke="#d4a843" stroke-width="1.5" opacity="0.8"/>
+          <circle cx="140" cy="70" r="3" fill="#d4a843" opacity="0.4"/>
+          <rect x="85" y="118" width="50" height="24" rx="2" fill="#1e1c18" stroke="#d4a843" stroke-width="1" opacity="0.8"/>
+          <text x="110" y="133" font-family="monospace" font-size="5" fill="#d4a843" text-anchor="middle" opacity="0.9">MK III — FAT MAN</text>
+          <ellipse cx="80" cy="90" rx="30" ry="50" fill="rgba(212,168,67,0.04)" transform="rotate(-10,80,90)"/>
+        </svg>
+      </div>
+    </div>
+
+    <div class="bomb-info reveal">
+      <div class="section-tag">Bomb 02 of 02</div>
+      <h3>"Fat Man"<br><span style="color:var(--accent)">Mark III — Plutonium Implosion</span></h3>
+      <p style="font-size:0.78rem; color:var(--text2); line-height:1.9; margin-top:0.8rem;">"Fat Man" was a far more complex weapon than Little Boy. Rather than a gun mechanism, it used an implosion design — conventional explosives were arranged precisely around a plutonium core to compress it uniformly inward, triggering a chain reaction. This design had been proven by the Trinity Test on July 16, 1945. It was dropped on <strong style="color:var(--text)">Nagasaki, Japan on August 9, 1945</strong>. The explosion killed approximately 40,000 people instantly, with total deaths reaching around 70,000 by year's end. Japan surrendered six days later.</p>
+      <div class="bomb-spec">
+        <div class="spec-row"><span class="spec-key">Designation</span><span class="spec-val">Mark III</span></div>
+        <div class="spec-row"><span class="spec-key">Core Material</span><span class="spec-val">Plutonium-239</span></div>
+        <div class="spec-row"><span class="spec-key">Mechanism</span><span class="spec-val">Implosion-Type</span></div>
+        <div class="spec-row"><span class="spec-key">Yield</span><span class="spec-val">~21 Kilotons TNT</span></div>
+        <div class="spec-row"><span class="spec-key">Weight</span><span class="spec-val">10,300 lbs</span></div>
+        <div class="spec-row"><span class="spec-key">Carrier Aircraft</span><span class="spec-val">B-29 Bockscar</span></div>
+        <div class="spec-row"><span class="spec-key">Deployed</span><span class="spec-val">Nagasaki, Aug 9 1945</span></div>
+        <div class="spec-row"><span class="spec-key">Immediate Deaths</span><span class="spec-val">~40,000</span></div>
+      </div>
+    </div>
+  </div>
+
+</div>
+
+<!-- LEGACY -->
+<section id="legacy">
+  <div class="reveal">
+    <div class="section-tag">05 — Aftermath</div>
+    <h2 class="section-title">Legacy &<br>Impact</h2>
+  </div>
+
+  <p class="legacy-text reveal">
+    The Manhattan Project did not just end a war — it permanently <strong>rewrote the rules of civilization</strong>. 
+    Nations now possessed the ability to cause extinction-level destruction. The Cold War was born. 
+    Military strategy shifted from conquest to <strong>deterrence</strong>. The entire world learned to live under the shadow of the bomb.
+  </p>
+
+  <div class="quote-block reveal">
+    <p>Now I am become Death, the destroyer of worlds.</p>
+    <cite>— J. Robert Oppenheimer, upon witnessing the Trinity Test, July 16, 1945 — quoting the Bhagavad Gita</cite>
+  </div>
+
+  <div class="impact-row reveal">
+    <div class="impact-box">
+      <div class="impact-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <circle cx="20" cy="20" r="4" fill="currentColor"/>
+          <path d="M20 16 L14 6 A14 14 0 0 1 26 6 Z" fill="currentColor" opacity="0.85"/>
+          <path d="M16.5 21.5 L5 26 A14 14 0 0 1 8 13 Z" fill="currentColor" opacity="0.85"/>
+          <path d="M23.5 21.5 L35 26 A14 14 0 0 0 32 13 Z" fill="currentColor" opacity="0.85"/>
+          <circle cx="20" cy="20" r="18" fill="none" stroke="currentColor" stroke-width="1.5"/>
+        </svg>
+      </div>
+      <div class="impact-title">Atomic Age</div>
+      <div class="impact-desc">Nuclear weapons became the defining technology of the 20th century. No other invention has so completely shaped geopolitics.</div>
+    </div>
+    <div class="impact-box">
+      <div class="impact-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- mushroom cloud stem -->
+          <rect x="16" y="24" width="8" height="10" rx="1" fill="currentColor" opacity="0.9"/>
+          <rect x="13" y="32" width="14" height="3" rx="1.5" fill="currentColor" opacity="0.7"/>
+          <!-- cloud top -->
+          <ellipse cx="20" cy="18" rx="13" ry="8" fill="currentColor" opacity="0.9"/>
+          <ellipse cx="20" cy="15" rx="10" ry="7" fill="currentColor"/>
+          <ellipse cx="14" cy="16" rx="5" ry="4" fill="currentColor" opacity="0.8"/>
+          <ellipse cx="26" cy="16" rx="5" ry="4" fill="currentColor" opacity="0.8"/>
+          <ellipse cx="20" cy="11" rx="7" ry="5" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="impact-title">Cold War</div>
+      <div class="impact-desc">The Soviet Union tested its own bomb in 1949, launching a decades-long arms race between two superpowers with enough bombs to destroy the world many times over.</div>
+    </div>
+    <div class="impact-box">
+      <div class="impact-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- nucleus -->
+          <circle cx="20" cy="20" r="3" fill="currentColor"/>
+          <!-- orbit 1 -->
+          <ellipse cx="20" cy="20" rx="17" ry="6" fill="none" stroke="currentColor" stroke-width="1.5"/>
+          <!-- orbit 2 rotated 60deg -->
+          <ellipse cx="20" cy="20" rx="17" ry="6" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(60 20 20)"/>
+          <!-- orbit 3 rotated 120deg -->
+          <ellipse cx="20" cy="20" rx="17" ry="6" fill="none" stroke="currentColor" stroke-width="1.5" transform="rotate(120 20 20)"/>
+          <!-- electrons -->
+          <circle cx="37" cy="20" r="2" fill="currentColor"/>
+          <circle cx="11.5" cy="8.5" r="2" fill="currentColor"/>
+          <circle cx="11.5" cy="31.5" r="2" fill="currentColor"/>
+        </svg>
+      </div>
+      <div class="impact-title">Nuclear Power</div>
+      <div class="impact-desc">Manhattan Project research led directly to civilian nuclear energy, now providing ~10% of global electricity. Nuclear medicine advanced cancer treatment.</div>
+    </div>
+    <div class="impact-box">
+      <div class="impact-icon">
+        <svg width="40" height="40" viewBox="0 0 40 40" fill="none" xmlns="http://www.w3.org/2000/svg">
+          <!-- center post -->
+          <rect x="19" y="6" width="2" height="26" fill="currentColor"/>
+          <!-- base -->
+          <rect x="12" y="32" width="16" height="2.5" rx="1.2" fill="currentColor"/>
+          <!-- crossbar -->
+          <rect x="7" y="11" width="26" height="2" rx="1" fill="currentColor"/>
+          <!-- left pan rope -->
+          <line x1="10" y1="13" x2="8" y2="22" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="10" y1="13" x2="14" y2="22" stroke="currentColor" stroke-width="1.5"/>
+          <!-- left pan (slightly lower = unbalanced) -->
+          <path d="M6 23 Q10 26 14 23" stroke="currentColor" stroke-width="1.5" fill="none"/>
+          <!-- right pan rope -->
+          <line x1="30" y1="13" x2="28" y2="19" stroke="currentColor" stroke-width="1.5"/>
+          <line x1="30" y1="13" x2="32" y2="19" stroke="currentColor" stroke-width="1.5"/>
+          <!-- right pan (higher) -->
+          <path d="M26 19 Q30 22 34 19" stroke="currentColor" stroke-width="1.5" fill="none"/>
+        </svg>
+      </div>
+      <div class="impact-title">Ethics Debate</div>
+      <div class="impact-desc">Scientists like Oppenheimer spent their lives questioning the moral weight of their creation. The debate over the bombings continues to this day.</div>
+    </div>
+  </div>
+</section>
+
+<!-- FOOTER -->
+<hr class="hr-styled">
+<footer>
+  <div class="footer-logo">MANHATTAN PROJECT</div>
+  <div class="footer-note">
+    <strong style="color:var(--accent); letter-spacing:0.15em;">WORKS CITED</strong><br><br>
+    Rhodes, Richard. <em>The Making of the Atomic Bomb.</em> Simon &amp; Schuster, 1986. <span style="color:var(--accent)">[PRINT]</span><br>
+    U.S. Department of Energy. "Manhattan Project History." <em>OSTI.gov</em>, www.osti.gov/opennet/manhattan-project-history/<br>
+    National Park Service. "Manhattan Project." <em>NPS.gov</em>, www.nps.gov/mapr/learn/historyculture/index.htm<br>
+    "Manhattan Project." <em>Encyclopaedia Britannica</em>, www.britannica.com/event/Manhattan-Project<br>
+    "What Was the Manhattan Project?" <em>Scientific American</em>, www.scientificamerican.com/article/what-was-the-manhattan-project/
+  </div>
+</footer>
+
+<script>
+  // SMOOTH SCROLL NAV
+  document.querySelectorAll('.nav-links a').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const targetId = link.getAttribute('href');
+      const target = document.querySelector(targetId);
+      if (!target) return;
+
+      const navHeight = document.querySelector('nav').offsetHeight;
+      const targetTop = target.getBoundingClientRect().top + window.scrollY - navHeight - 10;
+
+      window.scrollTo({ top: targetTop, behavior: 'smooth' });
+
+      // Active state flash
+      document.querySelectorAll('.nav-links a').forEach(l => l.classList.remove('active'));
+      link.classList.add('active');
+    });
+  });
+
+  // HIGHLIGHT ACTIVE NAV ON SCROLL
+  const sections = document.querySelectorAll('section, .timeline-full, .bomb-section');
+  const navLinks = document.querySelectorAll('.nav-links a');
+
+  window.addEventListener('scroll', () => {
+    let current = '';
+    const navHeight = document.querySelector('nav').offsetHeight;
+
+    sections.forEach(sec => {
+      const sectionTop = sec.offsetTop - navHeight - 60;
+      if (window.scrollY >= sectionTop) {
+        current = sec.getAttribute('id') || '';
+      }
+    });
+
+    navLinks.forEach(link => {
+      link.classList.remove('active');
+      if (link.getAttribute('href') === '#' + current) {
+        link.classList.add('active');
+      }
+    });
+  });
+
+  // THEME TOGGLE
+  function toggleTheme() {
+    const html = document.documentElement;
+    const isDark = html.getAttribute('data-theme') === 'dark';
+    html.setAttribute('data-theme', isDark ? 'light' : 'dark');
+    document.querySelector('.theme-toggle').textContent = isDark ? '[ ◑ Mode ]' : '[ ◑ Mode ]';
+  }
+
+  // SCROLL REVEAL
+  const revealEls = document.querySelectorAll('.reveal, .t-entry');
+  const observer = new IntersectionObserver((entries) => {
+    entries.forEach((entry, i) => {
+      if (entry.isIntersecting) {
+        setTimeout(() => entry.target.classList.add('visible'), 
+          entry.target.classList.contains('t-entry') ? 0 : 0);
+        entry.target.classList.add('visible');
+      }
+    });
+  }, { threshold: 0.15 });
+
+  revealEls.forEach(el => observer.observe(el));
+
+  // BOMB 3D MOUSE PARALLAX
+  const bombWrap = document.getElementById('bombWrap');
+  const bomb3d = document.getElementById('bomb3d');
+
+  document.addEventListener('mousemove', (e) => {
+    const cx = window.innerWidth / 2;
+    const cy = window.innerHeight / 2;
+    const dx = (e.clientX - cx) / cx;
+    const dy = (e.clientY - cy) / cy;
+
+    if (bombWrap) {
+      bombWrap.style.transform = `rotateY(${dx * 20}deg) rotateX(${-dy * 10}deg)`;
+    }
+    if (bomb3d) {
+      bomb3d.style.transform = `rotateY(${dx * 15}deg) rotateX(${-dy * 8}deg)`;
+    }
+  });
+
+  // SCROLL PARALLAX FOR BOMB
+  window.addEventListener('scroll', () => {
+    const scrollY = window.scrollY;
+    const hero = document.querySelector('.hero');
+    if (hero) {
+      hero.style.backgroundPositionY = scrollY * 0.3 + 'px';
+    }
+
+    // Parallax on hero bomb
+    const bombContainer = document.querySelector('.bomb-container');
+    if (bombContainer) {
+      bombContainer.style.transform = `translateY(${scrollY * 0.25}px)`;
+    }
+
+    // Nav background
+    const nav = document.querySelector('nav');
+    if (scrollY > 50) {
+      nav.style.background = 'var(--bg)';
+      nav.style.borderBottomColor = 'var(--border)';
+    } else {
+      nav.style.borderBottomColor = 'transparent';
+    }
+  });
+
+  // STAGGER REVEAL for topic cards
+  document.querySelectorAll('.topic-card').forEach((card, i) => {
+    card.style.transitionDelay = (i * 0.1) + 's';
+  });
+
+  document.querySelectorAll('.t-entry').forEach((entry, i) => {
+    entry.style.transitionDelay = (i * 0.1) + 's';
+  });
+</script>
+</body>
+</html>
